@@ -1,0 +1,29 @@
+First, I collect the information from the keyboard and use the if statement to divide the file into three parts.
+1. DV_regular:
+I store neighbor information into a dict graph, and store the initial routing table into a dict routingTable.
+If it's the last node, start sending.
+Start a listen thread to receive information from other nodes.
+In the listen thread,
+ 1. Determine if there is a new node in the routing table.
+ 2. Determine if we need to update the routing table and set pointer update to 1
+ 3. Implement Bellman-Ford algorithm:
+if routingTable[local_port][node][1] > graph[port] + routingTable[port][node][1]
+ 4. Send the information to all its neighbors.
+After 30s, the last node will send the update information to its neighbors.
+Then do the above again.
+
+2. DV_poison_reverse:
+First, I copied the code from dv_regular but after the change, I sent a signal to the listen thread and wrote different code for poison reverse.
+In this section, everytime I received a new table from another node, I compared it to see if the next hop was the two ports that changed the distance.
+routingTable[addr[1]][port] != newTable[port]
+If so, the routing table of that port will be infinite.
+
+3. LS:
+After we collected information from the keyboard, I used dijkstra algorithm to calculate the weight and parents of all nodes.
+I set a while loop for the listen function.
+Every time the listen function returns a new table, I update the routing table using the dijkstra algorithm and print it. Then return to the listen function again.
+In the listen function, I determine if the routing table has to update, if true, then return it.
+I also have a thread named send using as sending the table to all its neighbors every interval seconds.
+
+In order to restrict link-state broadcasts, I give every port a number starting with their port number. For example, port 4444 has a table called other_table = {1111: 11110, 2222: 22220, 3333:33330, 4444: 44440} which stores every number from each port. Every time 4444 receives a message, it will compare the number with the number in the dict. If it’s larger, broadcast it and number add 1, else, drop it.
+

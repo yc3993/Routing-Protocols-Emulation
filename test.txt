@@ -1,0 +1,119 @@
+test case:
+1. DV(r)
+Used the given graph in 2.7
+python3 routenode.py dv r 2 1111 2222 1 3333 50
+python3 routenode.py dv r 2 2222 1111 1 3333 2 4444 8
+python3 routenode.py dv r 2 3333 1111 50 2222 2 4444 5
+python3 routenode.py dv r 2 4444 2222 8 3333 5 last 50
+Each host will use dv algorithm to calculate their routing table, and find the shortest path.
+host4444:
+[1650738074.990947] Node 4444 Routing Table
+- (7) -> Node 2222; Next hop -> Node 3333
+- (5) -> Node 3333
+- (8) -> Node 1111; Next hop -> Node 3333
+After 30s, path:3333->4444 will add to 50
+After several epoch:
+[1650738079.82928] Node 4444 Routing Table
+- (8) -> Node 2222
+- (10) -> Node 3333; Next hop -> Node 2222
+- (9) -> Node 1111; Next hop -> Node 2222
+
+2. DV(p)
+python3 routenode.py dv p 2 1111 2222 1 3333 50
+python3 routenode.py dv p 2 2222 1111 1 3333 2
+python3 routenode.py dv p 2 3333 1111 50 2222 2 last 60
+After serveral epochs:
+[1650815953.7029881] Node 3333 Routing Table
+- (3) -> Node 1111; Next hop -> Node 2222
+- (2) -> Node 2222
+Using poison reverse algorithm, after one epoch:
+[1650815958.483383] Node 3333 Routing Table
+- (50) -> Node 1111
+- (51) -> Node 2222; Next hop -> Node 1111
+Much faster than using regular one.
+
+3. Example for DV for which count to infinity occurs under the regular mode but does not happen in Poisoned Reverse mode.
+Runing in poison reverse mode:
+python3 routenode.py dv p 2 1111 2222 30 3333 1 4444 50
+python3 routenode.py dv p 2 2222 1111 30 4444 40
+python3 routenode.py dv p 2 3333 1111 1 4444 2
+python3 routenode.py dv p 2 4444 1111 50 2222 40 3333 2 last 20
+
+[1650817456.590302] Node 4444 Routing Table
+- (3) -> Node 1111; Next hop -> Node 3333
+- (33) -> Node 2222; Next hop -> Node 3333
+- (2) -> Node 3333
+[1650817461.2489998] Node 4444 Routing Table
+- (21) -> Node 1111; Next hop -> Node 3333
+- (40) -> Node 2222
+- (20) -> Node 3333
+
+Runing in regular mode:
+python3 routenode.py dv r 2 1111 2222 30 3333 1 4444 50
+python3 routenode.py dv r 2 2222 1111 30 4444 40
+python3 routenode.py dv r 2 3333 1111 1 4444 2
+python3 routenode.py dv r 2 4444 1111 50 2222 40 3333 2 last 20
+
+For node 3333:
+[1650817822.309786] Node 3333 Routing Table
+- (1) -> Node 1111
+- (2) -> Node 4444
+- (31) -> Node 2222; Next hop -> Node 1111
+
+[1650817826.904502] Node 3333 Routing Table
+- (1) -> Node 1111
+- (4) -> Node 4444; Next hop -> Node 1111
+- (31) -> Node 2222; Next hop -> Node 1111
+
+[1650817826.905298] Node 3333 Routing Table
+- (1) -> Node 1111
+- (6) -> Node 4444; Next hop -> Node 1111
+- (31) -> Node 2222; Next hop -> Node 1111
+
+[1650817826.906715] Node 3333 Routing Table
+- (1) -> Node 1111
+- (8) -> Node 4444; Next hop -> Node 1111
+- (31) -> Node 2222; Next hop -> Node 1111
+
+[1650817826.908162] Node 3333 Routing Table
+- (1) -> Node 1111
+- (10) -> Node 4444; Next hop -> Node 1111
+- (31) -> Node 2222; Next hop -> Node 1111
+''''''
+
+[1650817826.917409] Link value message received at Node 3333 from Node 4444
+[1650817826.9174242] Node 3333 Routing Table
+- (1) -> Node 1111
+- (20) -> Node 4444
+- (31) -> Node 2222; Next hop -> Node 1111
+
+As shown above, if the value change to infinite, count to infinity will occur under the regular mode
+
+4. LS
+python3 routenode.py ls r 2 1111 2222 1 3333 50
+python3 routenode.py ls r 2 2222 1111 1 3333 2 4444 8
+python3 routenode.py ls r 2 3333 1111 50 2222 2 4444 5
+python3 routenode.py ls r 2 4444 2222 8 3333 5 last 12
+For initial, port 3333:
+[1650822343.814861] Node 3333 Network topology
+- 50 from Node 3333 to Node 1111
+- 2 from Node 3333 to Node 2222
+- 0 from Node 3333 to Node 3333
+- 5 from Node 3333 to Node 4444
+[1650822343.8157818] Node 3333 Routing Table
+- 50 Node 1111
+- 2 Node 2222
+- 0 Node 3333
+- 5 Node 4444
+After several epoch:
+[1650822359.917377] Node 3333 Routing Table
+- 3 -> Node 1111 ; Next hop -> Node 2222
+- 2 -> Node 2222
+- 5 -> Node 4444
+After cost change:
+[1650822361.9200268] Node 3333 Routing Table
+- 3 -> Node 1111 ; Next hop -> Node 2222
+- 2 -> Node 2222
+- 10 -> Node 4444 ; Next hop -> Node 2222
+
+
